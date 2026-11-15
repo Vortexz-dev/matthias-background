@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [{
     name: 'render-story',
     transformIndexHtml: {
-      order: 'pre',
+      order: 'post',
       handler(html) {
         const base = process.env.PAGES_BASE || './';
         return html.replace('<!-- story -->', renderStory(base));

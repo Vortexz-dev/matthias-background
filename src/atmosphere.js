@@ -1,16 +1,16 @@
 const profiles = {
-  intro:    { rgb: '172,157,172', fog: .21, type: 'petal', count: 2, petals: 1, wind: .17 },
-  winter:   { rgb: '181,200,217', fog: .27, type: 'rain', count: 38, wind: -.23 },
-  hearth:   { rgb: '235,187,133', fog: .13, type: 'dust', count: 25, wind: .12 },
+  intro:    { rgb: '172,157,172', fog: .39, type: 'petal', count: 6, petals: 3, wind: .17 },
+  winter:   { rgb: '181,200,217', fog: .47, type: 'rain', count: 72, wind: -.36, depth: .82 },
+  hearth:   { rgb: '247,173,114', fog: .3, type: 'ember', count: 41, wind: .15, depth: .91 },
   still:    { rgb: '179,179,189', fog: .04, type: 'dust', count: 0, wind: .02 },
-  wind:     { rgb: '190,206,223', fog: .13, type: 'dust', count: 27, wind: .68 },
-  arena:    { rgb: '217,203,186', fog: .17, type: 'grit', count: 25, wind: .42 },
-  impact:   { rgb: '217,203,186', fog: .17, type: 'grit', count: 31, wind: .71 },
-  handover: { rgb: '210,204,218', fog: .06, type: 'dust', count: 10, petals: 0, wind: .13 },
-  lotus:    { rgb: '205,185,211', fog: .13, type: 'petal', count: 8, petals: 6, wind: .19 },
-  candle:   { rgb: '238,211,181', fog: .08, type: 'dust', count: 13, wind: .09 },
-  smoke:    { rgb: '141,134,144', fog: .32, type: 'dust', count: 6, wind: .16 },
-  dawn:     { rgb: '219,181,199', fog: .17, type: 'petal', count: 4, petals: 3, wind: .11 },
+  wind:     { rgb: '190,206,223', fog: .27, type: 'dust', count: 48, wind: .93, depth: .66 },
+  arena:    { rgb: '217,203,186', fog: .39, type: 'grit', count: 51, wind: .62, depth: .8 },
+  impact:   { rgb: '217,203,186', fog: .39, type: 'grit', count: 65, wind: .95, depth: .96 },
+  handover: { rgb: '233,213,224', fog: .16, type: 'petal', count: 5, petals: 3, wind: .13, depth: .27 },
+  lotus:    { rgb: '222,176,204', fog: .26, type: 'petal', count: 15, petals: 8, wind: .22, depth: .32 },
+  candle:   { rgb: '238,211,181', fog: .16, type: 'ember', count: 26, wind: .09, depth: .52 },
+  smoke:    { rgb: '141,134,144', fog: .6, type: 'dust', count: 14, wind: .16, depth: .15 },
+  dawn:     { rgb: '235,174,201', fog: .33, type: 'petal', count: 10, petals: 7, wind: .15, depth: .47 },
   after:    { rgb: '217,196,205', fog: .07, type: 'dust', count: 6, wind: .14 },
 };
 
@@ -60,7 +60,7 @@ export function createAtmosphere(motion, viewer) {
 
   const sprite = smokeSprite();
   const weights = Object.fromEntries(Object.keys(profiles).map((mood) => [mood, 0]));
-  const seeds = Array.from({ length: 40 }, () => ({
+  const seeds = Array.from({ length: 72 }, () => ({
     x: Math.random(), y: Math.random(), scale: .28 + Math.random() * .72, spin: Math.random() * Math.PI * 2,
   }));
   let width, height, compact;
@@ -101,7 +101,7 @@ export function createAtmosphere(motion, viewer) {
 
   function drawProfile(profile, weight) {
     const { fog, count, type, rgb, wind } = profile;
-    const layers = compact ? 2 : 4;
+    const layers = compact ? 3 : 5;
     if (fog * weight > .025) {
       ctx.globalCompositeOperation = 'screen';
       for (let i = 0; i < layers; i++) {
@@ -117,17 +117,25 @@ export function createAtmosphere(motion, viewer) {
     for (let i = 0; i < total; i++) {
       const { x, y, scale, spin } = seeds[i];
       const px = wrap(x * width + elapsed * wind * 90 * scale + Math.sin(elapsed * .75 + spin) * 19, width + 60) - 30;
-      const speed = type === 'rain' ? 105 : type === 'petal' ? 31 : type === 'grit' ? 25 : -8;
+      const speed = type === 'rain' ? 173 : type === 'petal' ? 36 : type === 'grit' ? 38 : type === 'ember' ? -47 : -11;
       const py = wrap(y * height + elapsed * speed * scale, height + 80) - 40;
-      const alpha = weight * scale * (type === 'petal' ? .36 : .28);
+      const alpha = weight * scale * (type === 'petal' ? .57 : type === 'rain' ? .46 : .4);
       if (type === 'petal') {
-        drawPetal(ctx, px, py, 1.5 + scale * 4, spin + elapsed * .28, alpha);
+        drawPetal(ctx, px, py, 2 + scale * 6, spin + elapsed * .3, alpha);
       } else if (type === 'rain') {
         ctx.strokeStyle = `rgba(${rgb},${alpha})`;
         ctx.beginPath();
         ctx.moveTo(px, py);
-        ctx.lineTo(px + scale * 7, py - scale * 23);
+        ctx.lineTo(px + scale * 13, py - scale * 34);
         ctx.stroke();
+      } else if (type === 'ember') {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = `rgba(${rgb},${alpha})`;
+        ctx.fillStyle = `rgba(${rgb},${alpha * (.52 + .48 * Math.sin(elapsed * 3 + spin) ** 2)})`;
+        ctx.beginPath();
+        ctx.arc(px, py, .6 + scale * 1.65, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
       } else {
         ctx.fillStyle = `rgba(${rgb},${alpha})`;
         ctx.beginPath();
@@ -152,12 +160,12 @@ export function createAtmosphere(motion, viewer) {
       drawProfile(profile, weight);
       foreground += (profile.petals ?? 0) * weight;
     }
-    if (petals) petals.draw(elapsed, compact ? 0 : foreground, weights.intro);
+    if (petals) petals.draw(elapsed, compact ? 0 : foreground, weights.intro, compact ? null : profiles[mood], weights[mood]);
     if (compact || !petals || petals.lost()) {
-      const count = Math.min(compact ? 2 : 6, Math.ceil(foreground));
+      const count = Math.min(compact ? 4 : 8, Math.ceil(foreground));
       for (let i = 0; i < count; i++) {
         const seed = seeds[i + 30];
-        const alpha = Math.min(1, foreground - i) * .32;
+        const alpha = Math.min(1, foreground - i) * .47;
         const x = wrap((i ? seed.x : .69) * width + Math.sin(elapsed * .42 + i) * 39, width);
         const y = wrap((i ? seed.y : .18) * height + elapsed * (20 + i * 2), height + 40) - 20;
         drawPetal(near, x, y, (compact ? 4 : 7) * seed.scale, seed.spin + elapsed * .4, alpha);

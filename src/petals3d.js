@@ -1,6 +1,6 @@
 import {
   AmbientLight, BufferAttribute, BufferGeometry, Color, DirectionalLight,
-  DoubleSide, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer,
+  DoubleSide, Mesh, MeshStandardMaterial, PerspectiveCamera, Points, Scene, ShaderMaterial, WebGLRenderer,
 } from 'three';
 
 function petalMesh() {
@@ -32,6 +32,75 @@ function petalMesh() {
   return geometry;
 }
 
+function airVolume() {
+  const geometry = new BufferGeometry();
+  const particles = Array.from({ length: 52 }, () => ({
+    x: Math.random(), y: Math.random(), z: Math.random(), phase: Math.random() * Math.PI * 2,
+  }));
+  const positions = new BufferAttribute(new Float32Array(particles.length * 3), 3);
+  geometry.setAttribute('position', positions);
+  const material = new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { opacity: { value: 0 }, color: { value: new Color() }, streak: { value: 1 } },
+    vertexShader: `
+      varying float vNear;
+      void main() {
+        vec4 view = modelViewMatrix * vec4(position, 1.0);
+        vNear = clamp((16.0 + view.z) * .07, .2, 1.0);
+        gl_PointSize = clamp(22.0 / -view.z, 1.5, 10.0) * 2.25;
+        gl_Position = projectionMatrix * view;
+      }
+    `,
+    fragmentShader: `
+      uniform float opacity;
+      uniform float streak;
+      uniform vec3 color;
+      varying float vNear;
+      void main() {
+        vec2 p = gl_PointCoord - .5;
+        p.x += p.y * (streak - 1.0) * .14;
+        p.x *= streak;
+        float r = dot(p, p) * 4.0;
+        float core = exp(-r * 8.0);
+        float halo = exp(-r * 3.8) * .3;
+        float alpha = (core + halo) * (1.0 - smoothstep(.48,1.0,r));
+        gl_FragColor = vec4(color, alpha * opacity * vNear);
+      }
+    `,
+  });
+  const cloud = new Points(geometry, material);
+  cloud.frustumCulled = false;
+  const tint = new Color();
+  const wrap = (value) => ((value % 1) + 1) % 1;
+  return {
+    cloud,
+    update(time, profile, amount, aspect) {
+      cloud.visible = amount > .01;
+      if (!cloud.visible) return;
+      tint.setStyle(`rgb(${profile.rgb})`);
+      material.uniforms.color.value.lerp(tint, .055);
+      material.uniforms.opacity.value = .6 * amount;
+      const rain = profile.type === 'rain';
+      material.uniforms.streak.value += ((rain ? 3.8 : 1.05) - material.uniforms.streak.value) * .052;
+      const speed = rain ? -.27 : profile.type === 'ember' ? .068 : .026;
+      const horizontal = (profile.wind ?? 0) * .086;
+      for (const [i, seed] of particles.entries()) {
+        const sway = Math.sin(time * .6 + seed.phase) * .035;
+        const x = (wrap(seed.x + time * horizontal * (.25 + seed.z) + sway) - .5) * aspect * 15;
+        const y = (wrap(seed.y + time * speed * (.38 + seed.z * .9)) - .5) * 12;
+        const z = seed.z * 10 - 4 + Math.sin(time * .37 + seed.phase) * .62;
+        positions.setXYZ(i, x, y, z);
+      }
+      positions.needsUpdate = true;
+    },
+    dispose() {
+      geometry.dispose();
+      material.dispose();
+    },
+  };
+}
+
 export function createPetals() {
   const canvas = document.createElement('canvas');
   const options = { alpha: true, antialias: true, powerPreference: 'low-power' };
@@ -52,7 +121,9 @@ export function createPetals() {
   key.position.set(-4, 5, 3);
   scene.add(key);
   const geometry = petalMesh();
-  const petals = Array.from({ length: 6 }, () => {
+  const air = airVolume();
+  scene.add(air.cloud);
+  const petals = Array.from({ length: 8 }, () => {
     const material = new MeshStandardMaterial({ side: DoubleSide, vertexColors: true, roughness: .78, transparent: true, depthWrite: false });
     const mesh = new Mesh(geometry, material);
     scene.add(mesh);
@@ -67,18 +138,20 @@ export function createPetals() {
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
     },
-    draw(time, amount, intro) {
+    draw(time, amount, intro, profile, blend = 0) {
       if (this.lost()) {
         canvas.hidden = true;
         return;
       }
-      if (amount < .03) {
+      const airStrength = (profile?.depth ?? 0) * blend;
+      if (amount < .03 && airStrength < .025) {
         if (visible) canvas.hidden = true;
         visible = false;
         return;
       }
       canvas.hidden = false;
       visible = true;
+      air.update(time, profile, airStrength, camera.aspect);
       for (const [index, mesh] of petals.entries()) {
         const strength = Math.min(1, Math.max(0, amount - index));
         mesh.visible = strength > .02;
@@ -90,13 +163,14 @@ export function createPetals() {
         mesh.position.set(x + Math.sin(wave) * (.31 + index * .09), y, z);
         mesh.rotation.set(wave * .65, wave * .71, wave * .53);
         mesh.scale.setScalar((.2 + index * .037) * (1 - intro * .25));
-        mesh.material.opacity = strength * Math.min(.54, (4.9 - Math.abs(y)) * .27);
+        mesh.material.opacity = strength * Math.min(.68, (4.9 - Math.abs(y)) * .28);
       }
       renderer.render(scene, camera);
     },
     dispose() {
       geometry.dispose();
       petals.forEach((mesh) => mesh.material.dispose());
+      air.dispose();
       renderer.dispose();
       canvas.remove();
     },
