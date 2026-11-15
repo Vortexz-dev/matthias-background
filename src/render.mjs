@@ -18,7 +18,6 @@ function image(base, scene, first = false) {
     <img src="${path}-1440.webp" srcset="${path}-820.webp 820w, ${path}-1440.webp 1440w, ${path}-1920.webp ${width}w"
       sizes="${sizes}" width="${width}" height="${height}" alt="${escape(scene.alt)}"
       ${first ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"'} draggable="false">
-    <span class="frame-open" aria-hidden="true"><i></i></span>
   </button>`;
 }
 

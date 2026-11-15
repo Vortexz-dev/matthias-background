@@ -98,7 +98,6 @@ h1, h2, blockquote, .epilogue-title > p { font-family: var(--serif); font-weight
 .prologue .shot { transform: translateY(calc(3svh - var(--opening) * 8svh)) scale(calc(1 + var(--opening) * .15)); }
 .prologue .artwork, .epilogue .artwork { width: 100%; }
 .prologue .shot, .epilogue .shot { --feather: radial-gradient(ellipse 87% 79% at 50% 48%, #000 37%, #000a 62%, transparent 94%); }
-.prologue .frame-open, .epilogue .frame-open { top: auto; bottom: 19%; right: var(--gutter); }
 .prologue-shade {
   position: absolute;
   inset: 0;
@@ -315,21 +314,6 @@ h1 em, .epilogue-title em { color: #f4c7d7; font-weight: inherit; }
   transform: translate3d(calc(var(--lens-x, 0px) * .42), calc(var(--lens-y, 0px) * .38), 0) scale(var(--camera-scale, 1));
   mix-blend-mode: screen;
 }
-.frame-open {
-  position: absolute;
-  z-index: 3;
-  top: 10%;
-  right: 5.5%;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e8d6e359;
-  border-radius: 50%;
-  background: #0a080cf0;
-}
-.frame-open i { width: 12px; height: 12px; border: 1px solid #f5e6ef; clip-path: polygon(0 0, 33% 0, 33% 33%, 67% 33%, 67% 0, 100% 0, 100% 100%, 67% 100%, 67% 67%, 33% 67%, 33% 100%, 0 100%, 0 67%, 33% 67%, 33% 33%, 0 33%); }
-.frame:hover .frame-open, .frame:focus-visible .frame-open { border-color: var(--rose); background: #251621; }
 .shot figcaption {
   position: relative;
   justify-self: center;
@@ -453,8 +437,6 @@ html.viewing { overflow: hidden; scrollbar-gutter: stable; }
   h1 { font-size: clamp(3rem, 14.2vw, 6rem); }
   .prologue .artwork { width: max(100%, min(161%, 153svh)); }
   .epilogue .artwork { width: min(173%, 156svh); translate: 0 8svh; }
-  .prologue .frame-open { right: 22%; bottom: 11%; }
-  .epilogue .frame-open { right: 25%; bottom: 30%; }
   .prologue-end { gap: 11px; }
   .chapter-title h2 { font-size: clamp(3.3rem, 11vw, 5.7rem); }
   .manuscript { line-height: 1.64; }
