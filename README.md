@@ -25,4 +25,4 @@ The website’s WebP variants are in `public/frames`. The full-resolution lightb
 
 The HTML is generated at build time. Native scrolling drives camera movement, image layering, light, text entrances, and chapter tracking. Canvas handles weather, embers, mist, and distant petals. Three.js adds foreground petals and particles in depth on capable desktops, with a Canvas fallback. The site respects the visitor’s reduced-motion setting.
 
-Music begins when the reader enables it. Each chapter track loops and crossfades to the next or previous track at the chapter boundary. The Web Audio mix applies a short, quiet room response and subtle high-frequency roll-off.
+Music begins when the reader enables it. Each chapter track loops and crossfades to the next or previous track at the chapter boundary. Playback uses the original MP3s with volume control for the fades.
