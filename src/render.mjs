@@ -24,7 +24,7 @@ function image(base, scene, first = false) {
 
 function composition(base, scene, first = false) {
   const backplate = `${base}frames/${scene.file ?? scene.id}-820.webp`;
-  return `<figure class="shot ${scene.focus ? 'shot--depth' : ''}" style="--plate:url('${backplate}');--focus:${scene.focus ?? '50% 54%'}">
+  return `<figure class="shot ${scene.focus ? 'shot--depth' : ''}" data-plate="${backplate}" style="--focus:${scene.focus ?? '50% 54%'}">
     <div class="plate" aria-hidden="true"></div>
     <div class="artwork">
       ${image(base, scene, first)}
@@ -62,7 +62,7 @@ function sceneMarkup(base, scene, opener) {
 
 function chapterMarkup(base, chapter) {
   return `<section class="chapter" data-track="${chapter.number}" data-theme="${chapter.mood}" aria-labelledby="chapter-${chapter.roman}">
-    <header class="chapter-title" data-mood="${chapter.mood}" style="--plate:url('${base}frames/${chapter.scenes[0].id}-820.webp')">
+    <header class="chapter-title" data-mood="${chapter.mood}" data-plate="${base}frames/${chapter.scenes[0].id}-820.webp">
       <div class="chapter-veil" aria-hidden="true"></div>
       <div class="chapter-name">
         <p class="eyebrow chapter-place">${chapter.place}</p>

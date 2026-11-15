@@ -11,6 +11,10 @@ export function connectScroll(motion, onMood, onChapter) {
   const progress = document.querySelector('.reading-progress span');
   const intro = document.querySelector('.prologue');
   const chapterLabel = document.querySelector('.current-chapter');
+  for (const plate of document.querySelectorAll('[data-plate]')) {
+    const url = new URL(plate.dataset.plate, document.baseURI);
+    plate.style.setProperty('--plate', `url("${url.href}")`);
+  }
   const chapters = [...document.querySelectorAll('.chapter')].map((section) => ({
     section, roman: section.querySelector('.chapter-roman').textContent,
     title: section.querySelector('.chapter-words').textContent,
