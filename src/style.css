@@ -310,7 +310,7 @@ h1 em, .epilogue-title em { color: #f4c7d7; font-weight: inherit; }
   inset: 0;
   background: var(--plate) center / 100% 100% no-repeat;
   mask-image: radial-gradient(ellipse 16% 22% at var(--focus), #000 0%, #0005 53%, transparent 100%);
-  opacity: calc(var(--scene-bright, .6) * .36);
+  opacity: calc(var(--scene-bright, .6) * .31);
   transform: translate3d(calc(var(--lens-x, 0px) * .42), calc(var(--lens-y, 0px) * .38), 0) scale(var(--camera-scale, 1));
   mix-blend-mode: screen;
 }
@@ -335,7 +335,7 @@ h1 em, .epilogue-title em { color: #f4c7d7; font-weight: inherit; }
   mask-image: var(--feather), linear-gradient(transparent, #000 18% 82%, transparent);
   mask-composite: intersect;
 }
-.lighting i { position: absolute; display: block; inset: -8%; opacity: var(--scene-bright, .6); }
+.lighting i { position: absolute; display: block; inset: -8%; opacity: calc(var(--scene-bright, .6) * .85); }
 .lighting i:first-child {
   background: conic-gradient(from 148deg at 65% -5%, transparent 0 8deg, #c7d9ff27 12deg, transparent 20deg 28deg, #aebde226 30deg, transparent 46deg);
   transform: translateX(calc(var(--scene-offset, 0) * 10%));
@@ -352,7 +352,7 @@ h1 em, .epilogue-title em { color: #f4c7d7; font-weight: inherit; }
   background: conic-gradient(from 139deg at 52% -6%, transparent, #eedde844 22deg, transparent 25deg, #fff2dc46 31deg, transparent 45deg);
 }
 [data-mood="still"] .lighting, [data-mood="smoke"] .lighting { opacity: .37; }
-@keyframes firelight { to { opacity: calc(var(--scene-bright, .6) * .45); } }
+@keyframes firelight { to { opacity: calc(var(--scene-bright, .6) * .38); } }
 .frame-mark { position: absolute; inset: auto 6.5% 0; height: 1px; background: linear-gradient(90deg, transparent, #dac7d84a, transparent); pointer-events: none; }
 .chapter-title:not(.is-near) .chapter-veil,
 .scene:not(.is-near) .plate,

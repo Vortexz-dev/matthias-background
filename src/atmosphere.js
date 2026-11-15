@@ -99,8 +99,7 @@ export function createAtmosphere(motion, viewer) {
     if (profiles[mood].petals) maybeLoad3d();
   }
 
-  function drawProfile(profile, weight) {
-    const { fog, count, type, rgb, wind } = profile;
+  function drawFog(fog, weight) {
     const layers = compact ? 3 : 5;
     if (fog * weight > .025) {
       ctx.globalCompositeOperation = 'screen';
@@ -113,6 +112,23 @@ export function createAtmosphere(motion, viewer) {
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
     }
+  }
+
+  function softenFogOverImages() {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,.15)';
+    for (const artwork of document.querySelectorAll('.prologue .artwork, .scene.is-near .artwork, .epilogue.is-near .artwork')) {
+      const { left, top, right, bottom, width: imageWidth, height: imageHeight } = artwork.getBoundingClientRect();
+      if (bottom > 0 && top < height && right > 0 && left < width) {
+        ctx.fillRect(left, top, imageWidth, imageHeight);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawParticles(profile, weight) {
+    const { count, type, rgb, wind } = profile;
     const total = Math.ceil(count * (compact ? .4 : 1));
     for (let i = 0; i < total; i++) {
       const { x, y, scale, spin } = seeds[i];
@@ -152,12 +168,18 @@ export function createAtmosphere(motion, viewer) {
     elapsed += dt;
     ctx.clearRect(0, 0, width, height);
     near.clearRect(0, 0, width, height);
-    let foreground = 0;
     for (const [name, profile] of Object.entries(profiles)) {
       weights[name] += ((name === mood ? 1 : 0) - weights[name]) * (1 - Math.exp(-dt * 2.5));
       const weight = weights[name];
       if (weight < .012) continue;
-      drawProfile(profile, weight);
+      drawFog(profile.fog, weight);
+    }
+    softenFogOverImages();
+    let foreground = 0;
+    for (const [name, profile] of Object.entries(profiles)) {
+      const weight = weights[name];
+      if (weight < .012) continue;
+      drawParticles(profile, weight);
       foreground += (profile.petals ?? 0) * weight;
     }
     if (petals) petals.draw(elapsed, compact ? 0 : foreground, weights.intro, compact ? null : profiles[mood], weights[mood]);
